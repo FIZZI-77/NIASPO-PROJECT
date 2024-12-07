@@ -27,7 +27,7 @@ test:
     - docker:19.03.12
   script:
     # Запускаем тесты внутри контейнера backend
-    - docker-compose exec backend pytest  # Или используйте ваш тестовый фреймворк
+    - docker-compose exec backend pytest  
   only:
     - main
 
@@ -36,7 +36,7 @@ deploy:
   stage: deploy
   script:
     # Деплой на сервер через Docker Compose
-    - docker-compose down  # Останавливаем текущие контейнеры
+    - docker-compose down  
     - docker-compose up -d  # Запускаем контейнеры с новой версией
   only:
     - main
