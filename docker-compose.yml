@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: traffic_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./data:/data                      # Монтирование папки с данными
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql   # Монтирование скрипта инициализации
+    networks:
+      - traffic-network
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/traffic_db
+    depends_on:
+      - db
+    networks:
+      - traffic-network
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    networks:
+      - traffic-network
+    ports:
+      - "8080:80"
+
+networks:
+  traffic-network:
+    driver: bridge
+
+volumes:
+  db_data:
