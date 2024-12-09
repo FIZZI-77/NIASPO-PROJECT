@@ -8,18 +8,30 @@ services:
       POSTGRES_DB: traffic_db
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./data:/data                      # Монтирование папки с данными
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql   # Монтирование скрипта инициализации
+      - ./data:/data                      
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  
     networks:
       - traffic-network
+
+  redis:
+    image: redis:latest
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    networks:
+      - traffic-network
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   backend:
     build:
       context: ./backend
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/traffic_db
+      REDIS_URL: redis://redis:6379
     depends_on:
       - db
+      - redis
     networks:
       - traffic-network
     ports:
@@ -33,9 +45,19 @@ services:
     ports:
       - "8080:80"
 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - traffic-network
+    ports:
+      - "9090:9090"
+
 networks:
   traffic-network:
     driver: bridge
 
 volumes:
   db_data:
+  redis_data:
