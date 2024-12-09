@@ -33,6 +33,10 @@ jobs:
         run: |
           docker-compose ps
 
+      - name: Wait for Redis to start
+        run: |
+          sleep 10  # Задержка в 10 секунд
+
       - name: Verify Redis is running
         run: |
           docker-compose run --rm redis redis-cli ping
@@ -40,4 +44,5 @@ jobs:
       - name: Verify Prometheus is running
         run: |
           curl -s http://localhost:9090/metrics | head
+
 
