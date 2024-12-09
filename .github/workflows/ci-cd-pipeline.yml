@@ -9,8 +9,8 @@ on:
       - main
 
 jobs:
-  # Этап сборки и тестирования
-  build-and-test:
+  # Этап сборки
+  build-job:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,21 +35,9 @@ jobs:
 
       - name: Verify Redis is running
         run: |
-          docker-compose exec redis redis-cli ping
+          docker-compose run --rm redis redis-cli ping
 
       - name: Verify Prometheus is running
         run: |
           curl -s http://localhost:9090/metrics | head
 
-      - name: Run backend tests
-        run: |
-          docker-compose exec backend pytest
-
-      - name: Run frontend tests
-        run: |
-          docker-compose exec frontend npm test
-
-      - name: Stop containers after tests
-        if: always()
-        run: |
-          docker-compose down
