@@ -1,4 +1,4 @@
-name: Local CI Pipeline
+name: Build, Test, and Deploy Pipeline
 
 on:
   push:
@@ -25,25 +25,43 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      - name: Build and start containers
+      - name: Build Docker images
         run: |
-          docker-compose -f ./docker-compose.yml up --build -d
+          docker-compose -f ./docker-compose.yml build
 
-      - name: Check containers status
-        run: |
-          docker-compose ps
+  # Этап тестирования
+  test-job:
+    runs-on: ubuntu-latest
+    needs: build-job
 
-      - name: Wait for Redis to start (optional)
-        run: |
-          sleep 10  # Задержка в 10 секунд
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Verify Redis is running (ignoring errors)
+      - name: Run Docker Compose
         run: |
-          docker-compose run --rm redis redis-cli ping || true  # Игнорируем ошибку
+          docker-compose -f ./docker-compose.yml up -d
+
+      - name: Wait for services to start
+        run: |
+          sleep 10
+
+      - name: Verify Redis is running
+        run: |
+          docker-compose run --rm redis redis-cli ping || true
 
       - name: Verify Prometheus is running
         run: |
           curl -s http://localhost:9090/metrics | head
+
+  # Этап деплоя
+  deploy-job:
+    runs-on: ubuntu-latest
+    needs: test-job
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -53,5 +71,4 @@ jobs:
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker-compose build
           docker-compose push
