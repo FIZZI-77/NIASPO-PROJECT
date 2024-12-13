@@ -11,6 +11,7 @@ app = Flask(__name__,
 DB_URL = "postgresql://username:password@localhost:5432/thecleverprogrammer"
 engine = create_engine(DB_URL)
 
+
 @app.route('/')
 def index():
     # Получаем данные для отображения в графиках
