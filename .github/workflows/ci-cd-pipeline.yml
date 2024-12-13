@@ -46,10 +46,7 @@ jobs:
         run: |
           sleep 10
 
-      - name: Verify Redis is running
-        run: |
-          docker-compose run --rm redis redis-cli ping || true
-
+    
       - name: Verify Prometheus is running
         run: |
           curl -s http://localhost:9090/metrics | head
